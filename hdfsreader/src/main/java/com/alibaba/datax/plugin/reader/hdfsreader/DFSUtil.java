@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by mingya.wmy on 2015/8/12.
@@ -49,6 +50,8 @@ public class DFSUtil {
     private Boolean haveKerberos = false;
     private String kerberosKeytabFilePath;
     private String kerberosPrincipal;
+
+    private static final Pattern pa = Pattern.compile("(\\/\\.)|(_SUCCESS)");
 
 
     private static final int DIRECTORY_SIZE_GUESS = 16 * 1024;
@@ -180,6 +183,16 @@ public class DFSUtil {
 
     // 根据用户指定的文件类型，将指定的文件类型的路径加入sourceHDFSAllFilesList
     private void addSourceFileByType(String filePath) {
+
+        boolean b = pa.matcher(filePath).find();
+        if(b){
+            String message = String.format("目录[%s]属于临时目录，" +
+                            "跳过此目录[%s]"
+                    , filePath, this.specifiedFileType);
+            LOG.error(message);
+            return;
+        }
+
         // 检查file的类型和用户配置的fileType类型是否一致
         boolean isMatchedFileType = checkHdfsFileType(filePath, this.specifiedFileType);
 
